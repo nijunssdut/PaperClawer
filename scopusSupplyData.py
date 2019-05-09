@@ -2,7 +2,10 @@
 import urllib
 import urllib.parse
 import urllib.request
-import random,ssl,json,xmltodict
+import random
+import ssl
+import json
+import xmltodict
 from scopusTitleGetsid import titleGetRes
 from semanticGetTitle import getJsonDict
 from databaseIO import dbIO
@@ -11,34 +14,41 @@ ssl._create_default_https_context = ssl._create_unverified_context
 apikeyList = Settings.apikeyList
 keyIndex = Settings.keyIndex
 
-user_agents = ['Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20130406 Firefox/23.0', \
-               'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:18.0) Gecko/20100101 Firefox/18.0', \
-               'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/533+ \
-               (KHTML, like Gecko) Element Browser 5.0', \
-               'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)', \
-               'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14', \
-               'Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) \
-               Version/6.0 Mobile/10A5355d Safari/8536.25', \
-               'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) \
-               Chrome/28.0.1468.0 Safari/537.36', \
+user_agents = ['Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20130406 Firefox/23.0',
+               'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:18.0) Gecko/20100101 Firefox/18.0',
+               'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/533+ '
+               '(KHTML, like Gecko) Element Browser 5.0',
+               'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)',
+               'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14',
+               'Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko)'
+               'Version/6.0 Mobile/10A5355d Safari/8536.25',
+               'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko)'
+               'Chrome/28.0.1468.0 Safari/537.36',
                'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/5.0; TheWorld)']
 
 
-def authorGetRes(name,aid,pid):
+def authorGetRes(name, aid, pid):
+    """
+    依据作者名字在Scopus查询信息
+    :param name: 作者全名（需要考虑名前姓后或者姓后名前）
+    :param aid: 作者ID
+    :param pid: 对应文章的ID
+    :return:
+    """
     rNum = random.randint(0, 7)
     i_headers = {'User-Agent': user_agents[rNum]}
     dict={}
     audict = {}
-    afdict={}
+    afdict = {}
     values = {}
-    a=name.rfind(' ')
-    b=name.rfind('.')
-    if b>a:
-        lastname=name[b+1:]
-        firstname=name[0:b]
+    a = name.rfind(' ')
+    b = name.rfind('.')
+    if b > a:
+        lastname = name[b+1:]
+        firstname = name[0:b]
     else:
-        lastname=name[a+1:]
-        firstname=name[0:a]
+        lastname = name[a+1:]
+        firstname = name[0:a]
     values['query'] = 'authlast('+lastname+') and authfirst('+firstname+')'
     # print values
     data = urllib.parse.urlencode(values)
@@ -50,42 +60,64 @@ def authorGetRes(name,aid,pid):
         response = urllib.request.urlopen(request, timeout=5)
         dic = response.read().decode("utf-8")
     except Exception as e:
-        print (str(e),geturl)
+        print(str(e), geturl)
         return dict
     jsonDict = json.loads(dic)
-    count=len(jsonDict["search-results"]["entry"])
-    if not "error" in jsonDict["search-results"]["entry"][0] and count==1:
+    count = len(jsonDict["search-results"]["entry"])
+    if not "error" in jsonDict["search-results"]["entry"][0] and count == 1:
         # print (jsonDict["search-results"]["entry"])
-        audict["id"]=jsonDict["search-results"]["entry"][0]["dc:identifier"].replace("AUTHOR_ID:","").replace("'", "''")if jsonDict["search-results"]["entry"][0]["dc:identifier"] != [] else ""
-        audict["url"]=jsonDict["search-results"]["entry"][0]["prism:url"] if jsonDict["search-results"]["entry"][0]["prism:url"] is not None else ""
-        audict["firstname"]=jsonDict["search-results"]["entry"][0]["preferred-name"]["surname"].replace("'", "''")if jsonDict["search-results"]["entry"][0]["preferred-name"]["surname"] is not None else ""
-        audict["lastname"] = jsonDict["search-results"]["entry"][0]["preferred-name"]["given-name"].replace("'", "''")if jsonDict["search-results"]["entry"][0]["preferred-name"]["given-name"] is not None else ""
-        audict["fullname"]=audict["firstname"].replace("'", "''")+" "+audict["lastname"].replace("'", "''")
-        audict["simlastname"]=jsonDict["search-results"]["entry"][0]["preferred-name"]["initials"].replace("'", "''")if jsonDict["search-results"]["entry"][0]["preferred-name"]["initials"] is not None else ""
-        audict["simname"]=audict["firstname"].replace("'", "''")+" "+audict["simlastname"].replace("'", "''")
+        audict["id"] = jsonDict["search-results"]["entry"][0]["dc:identifier"].replace("AUTHOR_ID:", "")\
+            .replace("'", "''")if jsonDict["search-results"]["entry"][0]["dc:identifier"] != [] else ""
+        audict["url"] = jsonDict["search-results"]["entry"][0]["prism:url"]\
+            if jsonDict["search-results"]["entry"][0]["prism:url"] is not None else ""
+        audict["firstname"] = jsonDict["search-results"]["entry"][0]["preferred-name"]["surname"].replace("'", "''")\
+            if jsonDict["search-results"]["entry"][0]["preferred-name"]["surname"] is not None else ""
+        audict["lastname"] = jsonDict["search-results"]["entry"][0]["preferred-name"]["given-name"].replace("'", "''")\
+            if jsonDict["search-results"]["entry"][0]["preferred-name"]["given-name"] is not None else ""
+        audict["fullname"] = audict["firstname"].replace("'", "''")+" "+audict["lastname"].replace("'", "''")
+        # 姓缩写
+        audict["simlastname"] = jsonDict["search-results"]["entry"][0]["preferred-name"]["initials"].replace("'", "''")\
+            if jsonDict["search-results"]["entry"][0]["preferred-name"]["initials"] is not None else ""
+        audict["simname"] = audict["firstname"].replace("'", "''")+" "+audict["simlastname"].replace("'", "''")
         if "affiliation-current" in jsonDict["search-results"]["entry"][0]:
             # print (jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-id"].split(" ")[0])
-            audict["affiliation"] = jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-id"].split(" ")[0]
-            afdict["id"]=jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-id"].split(" ")[0]
-            afdict["name"]=jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-name"].replace("'", "''")if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-name"] is not None else ""
-            afdict["city"]=jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-city"].replace("'", "''")if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-city"] is not None else ""
-            afdict["country"]=jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-country"].replace("'", "''")if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-country"] is not None else ""
-            afdict["url"]=jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-url"]
-        # print dict
-        updateSql(audict,afdict,pid)
-    elif count==0:
-        print ("no results")
+            audict["affiliation"] = jsonDict["search-results"]["entry"][0]
+            ["affiliation-current"]["affiliation-id"].split(" ")[0]
+            afdict["id"] = jsonDict["search-results"]["entry"][0]
+            ["affiliation-current"]["affiliation-id"].split(" ")[0]
+            afdict["name"] = jsonDict["search-results"]["entry"][0]
+            ["affiliation-current"]["affiliation-name"].replace("'", "''")\
+                if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-name"] is not None else ""
+            afdict["city"] = jsonDict["search-results"]["entry"][0]
+            ["affiliation-current"]["affiliation-city"].replace("'", "''")\
+                if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-city"] is not None else ""
+            afdict["country"] = jsonDict["search-results"]["entry"][0]
+            ["affiliation-current"]["affiliation-country"].replace("'", "''")\
+                if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-country"] is not None else ""
+            afdict["url"] = jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-url"]
+        updateSql(audict, afdict, pid)
+    elif count == 0:
+        print("no results")
     elif not aid:
         return
     else:
-        dict["aid"]=aid
-        dict["firstname"]=firstname
-        dict["lastname"]=lastname
-        dict["fullname"]=name
-        dealaid(dict,pid)
+        dict["aid"] = aid
+        dict["firstname"] = firstname
+        dict["lastname"] = lastname
+        dict["fullname"] = name
+        # 在scopus中检索不到该作者，回到semantic库中查找
+        dealaid(dict, pid)
 
-def dealaid(dict,pid):
-    dict2={}
+
+def dealaid(dict, pid):
+    """
+    从semantic库中检索作者ID对应文章，如果有标题完全匹配或者模糊匹配的文章对应的sid，
+    在scopus中采用文章查找的方式获取作者与机构信息，并调用UpdateSQL更新到数据库中
+    :param dict: 作者名字与id字典
+    :param pid:
+    :return:
+    """
+    dict2 = {}
     rNum = random.randint(0, 7)
     i_headers = {'User-Agent': user_agents[rNum]}
     url = "http://api.semanticscholar.org/v1/author/"
@@ -95,21 +127,21 @@ def dealaid(dict,pid):
         response = urllib.request.urlopen(request, timeout=5)
         dic = response.read().decode("utf-8")
     except Exception as e:
-        print (str(e),geturl)
+        print(str(e), geturl)
         return []
     jsonDict = json.loads(dic)
     count = len(jsonDict["papers"])
-    if count==0:
-        print ("no way")
+    if count == 0:
+        print("no way")
     else:
         for i in range(count):
-            dict2=titleGetRes(jsonDict["papers"][i]["title"])
-            if "rel" in dict2 and dict2["rel"]<=0.1:
+            dict2 = titleGetRes(jsonDict["papers"][i]["title"])
+            if "rel" in dict2 and dict2["rel"] <= 0.1:
                 break
-            if i>=4:
+            if i >= 4:
                 break
         if "sid" in dict2:
-            url2='http://api.elsevier.com/content/abstract/scopus_id/' + str(dict2["sid"])
+            url2 = 'http://api.elsevier.com/content/abstract/scopus_id/' + str(dict2["sid"])
             # keyIndex+=1
             url2 += '?field=author,affiliation,title&apiKey=' + apikeyList[keyIndex]
             # print url2
@@ -118,16 +150,17 @@ def dealaid(dict,pid):
                 response = urllib.request.urlopen(request, timeout=5)
                 dic = response.read().decode("utf-8")
             except Exception as e:
-                print (str(e),url2)
+                print(str(e), url2)
                 return []
-            dic=xmltodict.parse(dic)
+            dic = xmltodict.parse(dic)
             # jsonDict = json.loads(dic)
             author, affil = getInfofromAbstractAPI(dic, dict)
             # print author, affil
             if author and affil:
-                updateSql(author,affil,pid)
+                updateSql(author, affil, pid)
 
-def getInfofromAbstractAPI(dic,dic2):
+
+def getInfofromAbstractAPI(dic, dic2):
     authors = {}
     affils = {}
     if 'authors' in dic['abstracts-retrieval-response'] and dic['abstracts-retrieval-response']['authors'] is not None:
@@ -206,6 +239,7 @@ def getAuthorInfofromXML(item):
     author['affiliation'] = affils
     return author
 
+
 def getAffilInfofromXML(item):
     affil = {}
     affil['id'] = item['@id']
@@ -220,22 +254,35 @@ def getAffilInfofromXML(item):
 
     return affil
 
-def updateSql(author,afil,pid):
+
+def updateSql(author, afil, pid):
+    """
+    更新作者表与机构表内容
+    :param author: 作者信息字典
+    :param afil: 机构信息字典
+    :param pid: 文章ID
+    :return:
+    """
     server = dbIO()
     sql = "select * from authorlist where aid='%s'" % (author["id"])
-    if server.count(sql)<=0:
+    if server.count(sql) <= 0:
         if not afil:
-            affiliation=""
+            affiliation = ""
         else:
-            affiliation=author["affiliation"]
-        sql="insert into authorlist (aid,url,fullname,simname,firstname,lastname,simlastname,articlelist,affillist) values ('%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (author["id"], author["url"], author["fullname"],author["simname"],author["firstname"],author["lastname"],author["simlastname"],pid,affiliation)
+            affiliation = author["affiliation"]
+        sql = "insert into authorlist (aid,url,fullname,simname,firstname,lastname,simlastname,articlelist,affillist)" \
+              " values ('%s','%s','%s','%s','%s','%s','%s','%s','%s')" \
+              % (author["id"], author["url"], author["fullname"], author["simname"], author["firstname"],
+                 author["lastname"], author["simlastname"], pid, affiliation)
         # print sql
         server.save(sql)
         if afil:
             sql = "select * from affillist where afid='%s'" % (afil["id"])
             if server.count(sql) <= 0:
-                sql = "insert into affillist (afid,name,city,country,url) values ('%s','%s','%s','%s','%s')" % (afil["id"], afil["name"], afil["city"], afil["country"], afil["url"])
+                sql = "insert into affillist (afid,name,city,country,url) values ('%s','%s','%s','%s','%s')" \
+                      % (afil["id"], afil["name"], afil["city"], afil["country"], afil["url"])
                 server.save(sql)
+
 
 def findArticle(dict):
     authorList=[]
@@ -310,9 +357,11 @@ def addArticle(dict):
               server.save(sql)
 
 def getTittle():
-    server=dbIO()
-    sql="select title,flag from searchlist2 where sid=''"
+    server = dbIO()
+    sql = "select title,flag from searchlist2 where sid=''"
     return server.load(sql)
+
+
 def supplyData():
     datarows = getTittle()
     for row in datarows:
@@ -325,8 +374,11 @@ def supplyData():
             continue
         else:
             for author in m["authors"]:
-                authorGetRes(author["name"],author["ids"][0])
+                print(author)
+                authorGetRes(author["name"], author["ids"][0])
             findArticle(m)
+
 if __name__ == "__main__":
-   supplyData()
+    supplyData()
+
 

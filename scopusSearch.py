@@ -4,21 +4,22 @@ import urllib.parse
 import urllib.request
 import Settings
 from databaseIO import dbIO
-from crawler_tools import getHTMLFromURLlib,getJSONFromHtml
+from crawler_tools import getHTMLFromURLlib, getJSONFromHtml
 
-apikey = Settings.apikey  #	98fed43850c47f7b0ed4d5db222320af
+apikey = Settings.apikey  # 98fed43850c47f7b0ed4d5db222320af
 singleSearchNum = Settings.singleSearchNum
 maxSearchNum = Settings.maxSearchNum
 
 
-def getTotalNumFromSearchAPI(query,time = 0):
+def getTotalNumFromSearchAPI(query, time = 0):
     urlL = "http://api.elsevier.com/content/search/scopus?" + urllib.parse.urlencode(
-        {'query': query}) + "&httpAccept=application/json&apiKey=%s&count=%d&start=%d" % (apikey,10,0)
+        {'query': query}) + "&httpAccept=application/json&apiKey=%s&count=%d&start=%d" % (apikey, 10, 0)
     html = getJSONFromHtml(getHTMLFromURLlib(urlL))
     total = html["search-results"]["opensearch:totalResults"]
     if total == 'null':
         return 0
     return int(total)
+
 
 def getArticlefromAPI(query,totalNum,taskStart):
     url = "http://api.elsevier.com/content/search/scopus?" + urllib.parse.urlencode(
@@ -69,10 +70,17 @@ def getArticlefromAPI(query,totalNum,taskStart):
             articleDict['date'] = item["prism:coverDate"]
 
         dataList.append(articleDict)
-    #print(dataList)
+    # print(dataList)
     return dataList
 
-def searchArticlesByQuery(query,taskID):
+
+def searchArticlesByQuery(query, taskID):
+    """
+
+    :param query:
+    :param taskID:
+    :return:
+    """
     dbIOserver = dbIO()
     totalNum = getTotalNumFromSearchAPI(query)
     print("searchResults:" + str(totalNum))
@@ -93,7 +101,8 @@ def searchArticlesByQuery(query,taskID):
         for article in articlesList:
             sql = "select * from searchlist where sid = " + article['id']
             if dbIOserver.count(sql) == 0:
-                sql = "INSERT INTO searchlist (sid,doi,flag,taskID) VALUES ('" + str(article['id']) + "','" + article['doi'] + "',0,'"+str(taskID)+"')"
+                sql = "INSERT INTO searchlist (sid,doi,flag,taskID) VALUES ('" + str(article['id'])\
+                      + "','" + article['doi'] + "',0,'"+str(taskID)+"')"
                 if dbIOserver.save(sql) > 0:
                     insertNum += 1
         dataLength += len(articlesList)
@@ -107,9 +116,9 @@ def searchArticlesByQuery(query,taskID):
     dbIOserver.save(sql)
 
 
-
 if __name__ == '__main__':
-    #search articles from Scopus
+    # search articles from Scopus
+
     query = """(abs(artificial intelligence) or title(artificial intelligence) or key(artificial intelligence)) 
     and (( PUBYEAR = 2017 and (DOCTYPE(cp)) and not (affilcountry(United States) OR affilcountry(China)) ) 
     OR ( PUBYEAR = 2010 and (DOCTYPE(cp)) and (affilcountry(Germany)) ))"""

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
-from scopusTitleGetsid import dealInfo,titleGetRes
-from scopusWholeInfo import getInfofromAbstractAPI,saveWholeArticletoDB
-from scopusSupplyData import getJsonDict,authorGetRes,findArticle
+from scopusTitleGetsid import dealInfo, titleGetRes
+from scopusWholeInfo import getInfofromAbstractAPI, saveWholeArticletoDB
+from scopusSupplyData import getJsonDict, authorGetRes, findArticle
 from checkKeys import checkScopusKeyIndex
 from databaseIO import dbIO
 # 对于searchlist中的flag，如果flag为1，那么有scoops id，并且完成操作

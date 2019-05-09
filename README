@@ -7,25 +7,29 @@
 addAlterData:
 
 checkKeys: 检查爬虫爬取Scopus API 是否因为key不足而出现异常
+
 clawler_tools: 从Scopus学术网利用API爬取论文信息，转换HTML为JSON，XML的工具
+
 databaseIO: 封装mysql数据库连接与操作方法，包括计数，存储，查询
+
 mainTest:主函数，入口函数
 
-mutilThreadMain:
+mutilThreadMain: 多线程处理更新数据，线程池线程数由MainTread的run()决定，每个线程对论文与搜索列表的更新由SingleThread的run()决定
 
 scopusSearch:
 
 scopusSupplyData:
 
-scopusTitleGetsid:
+scopusTitleGetsid: 利用标题在scopus库中查找对应论文ID（sid），并更新检索列表中sid与flag
 
 scopusWholeInfo:
 
 searchBykeyword:
 
-semanticGetTitle:
+semanticGetTitle: 利用标题信息，从semantic库中获取作者、关键词、引用、年份、出版机构等信息
 
 Settings: 一些基本配置，包括用户，密码，Scopus key等
+
 taskAssign:
 
 taskIntegration:

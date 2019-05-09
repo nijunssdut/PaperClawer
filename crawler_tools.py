@@ -40,11 +40,11 @@ def getXMLFromHtml(htmlText):
 
 def getHTMLFromURLlib(url, maxTime=3, time=0):
     """
-
+    从URL中获取到网页内容
     :param url: 爬取连接
     :param maxTime: 允许最大异常次数
     :param time: 异常次数
-    :return:
+    :return:爬取内容
     """
     # print(url,time)
     rNum = random.randint(0, 7)
