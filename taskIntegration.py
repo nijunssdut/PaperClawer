@@ -2,7 +2,12 @@ import Settings
 
 maxSearchNum = Settings.maxSearchNum
 
+
 def loadTaskfromFile(filename):
+    """
+    :param filename:
+    :return:
+    """
     taskList = []
     f = open(filename, "r")
     for line in f.readlines():
@@ -10,13 +15,24 @@ def loadTaskfromFile(filename):
     f.close()
     return taskList
 
+
 def computeGroupSum(list):
+    """
+    :param list:
+    :return:
+    """
     total = 0
     for item in list:
         total += item[1]
     return total
 
-def findMinIndexMoreThanTarget(valuelist,target):
+
+def findMinIndexMoreThanTarget(valuelist, target):
+    """
+    :param valuelist:
+    :param target:
+    :return:
+    """
     minSub = maxSearchNum - target
     minIndex = -1
     for i in range(0,len(valuelist)):
@@ -25,7 +41,13 @@ def findMinIndexMoreThanTarget(valuelist,target):
              minIndex = i
     return minIndex
 
+
 def findMaxIndexLessThanTarget(valuelist,target):
+    """
+    :param valuelist:
+    :param target:
+    :return:
+    """
     minSub = target
     minIndex = -1
     for i in range(0,len(valuelist)):
@@ -34,7 +56,8 @@ def findMaxIndexLessThanTarget(valuelist,target):
              minIndex = i
     return minIndex
 
-#reduce task num
+
+# reduce task num
 def taskIntegration(groupList):
     while True:   # find > 2500 least gap and find biggest stone to fill
         valueList = [computeGroupSum(group) for group in groupList]
@@ -71,7 +94,8 @@ def taskIntegration(groupList):
 
     return groupList
 
-#main function
+
+# main function
 def getTaskQueryList(taskList):
 
     groupList = [[[i, int(taskList[i][1]), taskList[i][2]]] for i in range(0, len(taskList))]

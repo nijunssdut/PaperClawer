@@ -161,6 +161,11 @@ def dealaid(dict, pid):
 
 
 def getInfofromAbstractAPI(dic, dic2):
+    """
+    :param dic:
+    :param dic2:
+    :return:
+    """
     authors = {}
     affils = {}
     if 'authors' in dic['abstracts-retrieval-response'] and dic['abstracts-retrieval-response']['authors'] is not None:
@@ -169,30 +174,39 @@ def getInfofromAbstractAPI(dic, dic2):
             for item in dic['abstracts-retrieval-response']['authors']['author']:
                 # print item
                 author = getAuthorInfofromXML(item)
-                # if dic2["firstname"].lower()==author["lastname"].lower() and dic2["lastname"].lower()==author["firstname"].lower() or (dic2["firstname"].lower()==author["firstname"].lower() and dic2["lastname"].lower()==author["lastname"].lower()):
-                if dic2["firstname"].lower() in author["lastname"].lower().split(" ") and dic2["lastname"].lower() in author["firstname"].lower().split(" ") or (dic2["firstname"].lower() in author["firstname"].lower().split(" ") and dic2["lastname"].lower() in author["lastname"].lower().split(" ")):
-                # authorList.append(author)
-                    authors=author
+                # if dic2["firstname"].lower()==author["lastname"].lower() and
+                # dic2["lastname"].lower()==author["firstname"].lower() or
+                # (dic2["firstname"].lower()==author["firstname"].lower() and
+                # dic2["lastname"].lower()==author["lastname"].lower()):
+                if dic2["firstname"].lower() in author["lastname"].lower().split(" ") and \
+                    dic2["lastname"].lower() in author["firstname"].lower().split(" ") or \
+                    (dic2["firstname"].lower() in author["firstname"].lower().split(" ")
+                        and dic2["lastname"].lower() in author["lastname"].lower().split(" ")):
+                    # authorList.append(author)
+                    authors = author
                     # print author
                     authors["affiliation"] = authors["affiliation"][0] if authors["affiliation"] != [] else ""
                     break
                 else:
-                    authors={}
+                    authors = {}
         elif isinstance(dic['abstracts-retrieval-response']['authors']['author'], dict):
             item = dic['abstracts-retrieval-response']['authors']['author']
             author = getAuthorInfofromXML(item)
-            if dic2["firstname"].lower() in author["lastname"].lower().split(" ") and dic2["lastname"].lower() in \
-                    author["firstname"].lower().split(" ") or (
-                    dic2["firstname"].lower() in author["firstname"].lower().split(" ") and dic2["lastname"].lower() in
-                author["lastname"].lower().split(" ")):
-            # if dic2["firstname"].lower() == author["lastname"].lower() and dic2["lastname"].lower()==author["firstname"].lower() or (dic2["firstname"].lower()==author["firstname"].lower() and dic2["lastname"].lower()==author["lastname"].lower()):
+            if dic2["firstname"].lower() in author["lastname"].lower().split(" ") \
+                and dic2["lastname"].lower() in author["firstname"].lower().split(" ") \
+                or (dic2["firstname"].lower() in author["firstname"].lower().split(" ")
+                    and dic2["lastname"].lower() in author["lastname"].lower().split(" ")):
+                # if dic2["firstname"].lower() == author["lastname"].lower()
+                # and dic2["lastname"].lower()==author["firstname"].lower()
+                # or (dic2["firstname"].lower()==author["firstname"].lower()
+                # and dic2["lastname"].lower()==author["lastname"].lower()):
                 authors = author
                 authors["affiliation"]=authors["affiliation"][0]if authors["affiliation"] != [] else ""
             else:
-                authors={}
+                authors = {}
             # authorList.append(author)
     if not authors:
-        return {},{}
+        return {}, {}
     # process affilInfo
     if 'affiliation' in dic['abstracts-retrieval-response']:
         if isinstance(dic['abstracts-retrieval-response']['affiliation'], list):
@@ -208,9 +222,15 @@ def getInfofromAbstractAPI(dic, dic2):
             # print affil
             if authors["affiliation"] == affil["id"][0]:
                 affils = affil
-    return authors,affils
+    return authors, affils
+
 
 def getAuthorInfofromXML(item):
+    """
+
+    :param item:
+    :return:
+    """
     author = {}
     author['id'] = item['@auid']
     author['url'] = item['author-url'].replace("'","''")
@@ -241,13 +261,17 @@ def getAuthorInfofromXML(item):
 
 
 def getAffilInfofromXML(item):
+    """
+    :param item:
+    :return:
+    """
     affil = {}
     affil['id'] = item['@id']
-    affil['url'] = item['@href'].replace("'","''")
-    affil['name'] = item['affilname'].replace("'","''") if item['affilname'] is not None else ""
+    affil['url'] = item['@href'].replace("'", "''")
+    affil['name'] = item['affilname'].replace("'", "''") if item['affilname'] is not None else ""
 
     affil['city'] = item['affiliation-city'] if item['affiliation-city'] is not None else ""
-    affil['city'] = affil['city'].replace("'","''")
+    affil['city'] = affil['city'].replace("'", "''")
 
     affil['country'] = item['affiliation-country'] if item['affiliation-country'] is not None else ""
     affil['country'] = affil['country'].replace("'", "''")
@@ -285,12 +309,16 @@ def updateSql(author, afil, pid):
 
 
 def findArticle(dict):
-    authorList=[]
-    dictsupply={}
-    pid=dict["id"]
+    """
+    :param dict:
+    :return:
+    """
+    authorList = []
+    dictsupply = {}
+    pid = dict["id"]
     # print ('dict',dict)
-    authorList=getAuthorlist(pid)
-    affillist=authoraffil(authorList)
+    authorList = getAuthorlist(pid)
+    affillist = authoraffil(authorList)
     # print(authorList)
     dictsupply["title"] = dict["title"]
     dictsupply["keywords"] = dict["keyPhrases"]
@@ -299,26 +327,33 @@ def findArticle(dict):
     if "year" in dict and not dict["year"]=="":
         dictsupply["date"] = dict["year"] + '-01-01'
     else:
-        dictsupply["date"]=""
+        dictsupply["date"] = ""
     dictsupply["citation"] = dict["citations"]
-    dictsupply["doi"] =dict["doi"]
-    dictsupply["sid"] =dict["id"]
-    dictsupply["authorlist"] =authorList
+    dictsupply["doi"] = dict["doi"]
+    dictsupply["sid"] = dict["id"]
+    dictsupply["authorlist"] = authorList
     dictsupply["affillist"] = affillist
     dictsupply["articleType"] = ""
     dictsupply["abstractLang"] = "eng"
     addArticle(dictsupply)
 
+
 def authoraffil(authorlist):
     server = dbIO()
-    affillist=[]
+    affillist = []
     for aid in authorlist:
-        sql = "select affillist from authorlist where aid='%s'"%(aid)
-        datarows=server.load(sql)
+        sql = "select affillist from authorlist where aid='%s'" % aid
+        datarows = server.load(sql)
         for row in datarows:
             affillist.append(row[0])
     return affillist
+
+
 def getAuthorlist(pid):
+    """
+    :param pid: 文章ID
+    :return: 获取同一文章的全部作者列表
+    """
     server = dbIO()
     authorlist = []
     sql = "select aid from authorlist where articlelist='%s'" % (pid)
@@ -327,42 +362,56 @@ def getAuthorlist(pid):
         authorlist.append(row[0])
     return authorlist
 
+
 def addArticle(dict):
-      authors=""
-      authorlist= dict["authorlist"]
-      for author in authorlist:
-          authors+=author+"|"
-      # print (authors[:-1])
-      keywords=""
-      keywordlist=dict["keywords"]
-      for keyword in keywords:
-          keywords+=keyword+"|"
-      affils = ""
-      affillist = dict["affillist"]
-      for affil in affillist:
-          affils += affil + "|"
-      # print (affils[:-1])
-# add in datebase
-      server = dbIO()
-      sql = "select * from articlelist where sid='%s'" % (dict["sid"])
-      if server.count(sql) <= 0:
-          sql="insert into articlelist(sid,doi,authorlist,affillist,title,abstract,keywords,date,journalName,articletype,abstractLang,citation)values('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%d')" % (dict["sid"],dict["doi"],authors[:-1],affils[:-1],dict["title"].replace("'", "''"),dict["abstract"].replace("'", "''").replace("\n\n\n", " |").replace("\n", "| "),keywords[:-1].replace("'", "''"),dict["date"],dict["journalName"],dict["articleType"],dict["abstractLang"],dict["citation"])
-          server.save(sql)
-          sql="select flag from searchlist2 where title='%s'" %(dict["title"].replace("'","''"))
-          # print (dict["title"],server.load(sql))
-          server.load(sql)
-          flag=server.load(sql)[0][0]
-          if flag==0:
-              sql="update searchlist2 set flag=3 where title='%s'" %(dict["title"].replace("'","''"))
-              server.save(sql)
+    authors = ""
+    authorlist = dict["authorlist"]
+    for author in authorlist:
+        authors += author+"|"
+    # print (authors[:-1])
+    keywords = ""
+    keywordlist = dict["keywords"]
+    for keyword in keywords:
+        keywords += keyword+"|"
+    affils = ""
+    affillist = dict["affillist"]
+    for affil in affillist:
+        affils += affil + "|"
+    # print (affils[:-1])
+    # add in datebase
+    server = dbIO()
+    sql = "select * from articlelist where sid='%s'" % (dict["sid"])
+    if server.count(sql) <= 0:
+        sql = "insert into articlelist(sid,doi,authorlist,affillist,title,abstract,keywords,date," \
+              "journalName,articletype,abstractLang,citation)" \
+              "values('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%d')" \
+              % (dict["sid"], dict["doi"], authors[:-1], affils[:-1], dict["title"].replace("'", "''"),
+                 dict["abstract"].replace("'", "''").replace("\n\n\n", " |").replace("\n", "| "),
+                 keywords[:-1].replace("'", "''"), dict["date"], dict["journalName"],
+                 dict["articleType"], dict["abstractLang"], dict["citation"])
+        server.save(sql)
+        sql = "select flag from searchlist2 where title='%s'" % (dict["title"].replace("'", "''"))
+        # print (dict["title"],server.load(sql))
+        server.load(sql)
+        flag = server.load(sql)[0][0]
+        if flag == 0:
+            sql = "update searchlist2 set flag=3 where title='%s'" % (dict["title"].replace("'", "''"))
+            server.save(sql)
+
 
 def getTittle():
+    """
+    :return: 标题与flag情况，对于scopus ID为空的数据（Scopus信息未更新或是找不到）
+    """
     server = dbIO()
     sql = "select title,flag from searchlist2 where sid=''"
     return server.load(sql)
 
 
 def supplyData():
+    """
+    :return: 入口函数
+    """
     datarows = getTittle()
     for row in datarows:
         title, flag = row

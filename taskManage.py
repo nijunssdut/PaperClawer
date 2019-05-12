@@ -3,7 +3,12 @@ from taskIntegration import getTaskQueryList, loadTaskfromFile
 from databaseIO import dbIO
 
 
-def saveTaskList(taskList,key):
+def saveTaskList(taskList, key):
+    """
+    :param taskList:
+    :param key:
+    :return:
+    """
     dbIOserver = dbIO()
     insertNum = 0
     for task in taskList:
@@ -16,14 +21,22 @@ def saveTaskList(taskList,key):
 
 
 def loadTaskList(key):
+    """
+    :param key:
+    :return:
+    """
     dbIOserver = dbIO()
     sql = "select id, totalNum, query from tasklist where keyword = '" + key + "' and flag != 1"
     data = dbIOserver.load(sql)
-    taskList = [[int(item[0]),item[2]] for item in data]
+    taskList = [[int(item[0]), item[2]] for item in data]
     return taskList
 
 
 def getTasks(key):
+    """
+    :param key:
+    :return:
+    """
     dbIOserver = dbIO()
     sql = "SELECT * FROM tasklist where keyword = '" + key + "'"
     # print(sql)
@@ -31,7 +44,7 @@ def getTasks(key):
     if dbIOserver.count(sql) <= 0:
         queryList = buildOriginTask(key)
         taskList = getTaskQueryList(queryList)
-        saveTaskList(taskList,key)
+        saveTaskList(taskList, key)
     else:
         taskList = loadTaskList(key)
     return taskList

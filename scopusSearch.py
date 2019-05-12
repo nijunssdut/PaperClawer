@@ -11,7 +11,11 @@ singleSearchNum = Settings.singleSearchNum
 maxSearchNum = Settings.maxSearchNum
 
 
-def getTotalNumFromSearchAPI(query, time = 0):
+def getTotalNumFromSearchAPI(query):
+    """
+    :param query: Scopus高级检索命令语句
+    :return: 符合条件的结果数目
+    """
     urlL = "http://api.elsevier.com/content/search/scopus?" + urllib.parse.urlencode(
         {'query': query}) + "&httpAccept=application/json&apiKey=%s&count=%d&start=%d" % (apikey, 10, 0)
     html = getJSONFromHtml(getHTMLFromURLlib(urlL))
@@ -21,7 +25,13 @@ def getTotalNumFromSearchAPI(query, time = 0):
     return int(total)
 
 
-def getArticlefromAPI(query,totalNum,taskStart):
+def getArticlefromAPI(query, totalNum, taskStart):
+    """
+    :param query: Scopus高级检索命令语句
+    :param totalNum:
+    :param taskStart:
+    :return: 文章信息列表
+    """
     url = "http://api.elsevier.com/content/search/scopus?" + urllib.parse.urlencode(
         {'query': query}) + "&httpAccept=application/json&apiKey=%s" % apikey
 
@@ -29,12 +39,12 @@ def getArticlefromAPI(query,totalNum,taskStart):
     startIndex = taskStart
     try:
         if startIndex != totalNum:
-            singleCount = singleSearchNum    #7.19 modified
+            singleCount = singleSearchNum    # 7.19 modified
             if totalNum - startIndex < singleSearchNum:
                 singleCount = totalNum - startIndex
             urlL = url + "&count=%d&start=%d" % (singleCount, startIndex)
             html = getJSONFromHtml(getHTMLFromURLlib(urlL))
-            #startIndex = html["search-results"]["opensearch:startIndex"]
+            # startIndex = html["search-results"]["opensearch:startIndex"]
             if 'error' in html["search-results"]["entry"][0]:
                 return []
             articleList.extend(html["search-results"]["entry"])
@@ -43,9 +53,9 @@ def getArticlefromAPI(query,totalNum,taskStart):
             startIndex = taskStart+len(articleList)
     except Exception as e:
         print(str(e))
-        #print("totalnum:"+str(totalNum)+ "finish num:"+str(len(articleList)))
+        # print("totalnum:"+str(totalNum)+ "finish num:"+str(len(articleList)))
 
-    #print(articleList)
+    # print(articleList)
     dataList = []
     for item in articleList:
         articleDict = {}
@@ -77,7 +87,7 @@ def getArticlefromAPI(query,totalNum,taskStart):
 def searchArticlesByQuery(query, taskID):
     """
 
-    :param query:
+    :param query: Scopus高级检索命令语句
     :param taskID:
     :return:
     """
