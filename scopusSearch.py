@@ -28,9 +28,9 @@ def getTotalNumFromSearchAPI(query):
 def getArticlefromAPI(query, totalNum, taskStart):
     """
     :param query: Scopus高级检索命令语句
-    :param totalNum:
-    :param taskStart:
-    :return: 文章信息列表
+    :param totalNum: 任务总数
+    :param taskStart: 任务开始起点位置
+    :return: Scopus文章信息列表
     """
     url = "http://api.elsevier.com/content/search/scopus?" + urllib.parse.urlencode(
         {'query': query}) + "&httpAccept=application/json&apiKey=%s" % apikey
@@ -86,10 +86,9 @@ def getArticlefromAPI(query, totalNum, taskStart):
 
 def searchArticlesByQuery(query, taskID):
     """
-
     :param query: Scopus高级检索命令语句
-    :param taskID:
-    :return:
+    :param taskID: 任务序号
+    :return: 插入文章信息到searchlist数据库中
     """
     dbIOserver = dbIO()
     totalNum = getTotalNumFromSearchAPI(query)
@@ -127,6 +126,7 @@ def searchArticlesByQuery(query, taskID):
 
 
 if __name__ == '__main__':
+
     # search articles from Scopus
 
     query = """(abs(artificial intelligence) or title(artificial intelligence) or key(artificial intelligence)) 

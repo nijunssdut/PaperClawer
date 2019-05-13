@@ -16,7 +16,7 @@ mainTest:主函数，入口函数，先利用标题从scopus填充文章信息�
 
 mutilThreadMain: 多线程处理更新数据，线程池线程数由MainTread的run()决定，每个线程对论文与搜索列表的更新由SingleThread的run()决定
 
-scopusSearch:
+scopusSearch: 利用Scopus高级检索命令获取文章信息，把该信息存放到数据库待检索详细文章信息的列表中
 
 scopusSupplyData: 不存在scopus 文章ID时，从Semantic库中检索对应文章，如果有标题完全匹配或者模糊匹配的文章对应，
                   在scopus中采用文章标题查找、作者查找的方式获取作者与机构信息，并调用addArticle，UpdateSQL更新到数据库中
