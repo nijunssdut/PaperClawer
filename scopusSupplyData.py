@@ -93,7 +93,8 @@ def authorGetRes(name, aid, pid):
                 if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-city"] is not None else ""
             afdict["country"] = jsonDict["search-results"]["entry"][0]
             ["affiliation-current"]["affiliation-country"].replace("'", "''")\
-                if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-country"] is not None else ""
+                if jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-country"] is not None \
+                else ""
             afdict["url"] = jsonDict["search-results"]["entry"][0]["affiliation-current"]["affiliation-url"]
         updateSql(audict, afdict, pid)
     elif count == 0:
@@ -113,8 +114,8 @@ def dealaid(dict, pid):
     """
     从semantic库中检索作者ID对应文章，如果有标题完全匹配或者模糊匹配的文章对应的sid，
     在scopus中采用文章查找的方式获取作者与机构信息，并调用UpdateSQL更新到数据库中
-    :param dict: 作者名字与id字典
-    :param pid:
+    :param dict: Scopus中作者名字与id字典
+    :param pid: 对应文章的ID
     :return:
     """
     dict2 = {}
@@ -162,49 +163,49 @@ def dealaid(dict, pid):
 
 def getInfofromAbstractAPI(dic, dic2):
     """
-    :param dic:
-    :param dic2:
-    :return:
+    :param dic: 从文章SID角度获得的作者机构内容
+    :param dic2: Scopus中作者名字与ID字典
+    :return: 作者、机构字典
     """
     authors = {}
     affils = {}
     if 'authors' in dic['abstracts-retrieval-response'] and dic['abstracts-retrieval-response']['authors'] is not None:
-      if 'author' in dic['abstracts-retrieval-response']['authors']:
-        if isinstance(dic['abstracts-retrieval-response']['authors']['author'], list):
-            for item in dic['abstracts-retrieval-response']['authors']['author']:
-                # print item
+        if 'author' in dic['abstracts-retrieval-response']['authors']:
+            if isinstance(dic['abstracts-retrieval-response']['authors']['author'], list):
+                for item in dic['abstracts-retrieval-response']['authors']['author']:
+                    # print item
+                    author = getAuthorInfofromXML(item)
+                    # if dic2["firstname"].lower()==author["lastname"].lower() and
+                    # dic2["lastname"].lower()==author["firstname"].lower() or
+                    # (dic2["firstname"].lower()==author["firstname"].lower() and
+                    # dic2["lastname"].lower()==author["lastname"].lower()):
+                    if dic2["firstname"].lower() in author["lastname"].lower().split(" ") and \
+                        dic2["lastname"].lower() in author["firstname"].lower().split(" ") or \
+                        (dic2["firstname"].lower() in author["firstname"].lower().split(" ")
+                            and dic2["lastname"].lower() in author["lastname"].lower().split(" ")):
+                        # authorList.append(author)
+                        authors = author
+                        # print author
+                        authors["affiliation"] = authors["affiliation"][0] if authors["affiliation"] != [] else ""
+                        break
+                    else:
+                        authors = {}
+            elif isinstance(dic['abstracts-retrieval-response']['authors']['author'], dict):
+                item = dic['abstracts-retrieval-response']['authors']['author']
                 author = getAuthorInfofromXML(item)
-                # if dic2["firstname"].lower()==author["lastname"].lower() and
-                # dic2["lastname"].lower()==author["firstname"].lower() or
-                # (dic2["firstname"].lower()==author["firstname"].lower() and
-                # dic2["lastname"].lower()==author["lastname"].lower()):
-                if dic2["firstname"].lower() in author["lastname"].lower().split(" ") and \
-                    dic2["lastname"].lower() in author["firstname"].lower().split(" ") or \
-                    (dic2["firstname"].lower() in author["firstname"].lower().split(" ")
-                        and dic2["lastname"].lower() in author["lastname"].lower().split(" ")):
-                    # authorList.append(author)
+                if dic2["firstname"].lower() in author["lastname"].lower().split(" ") \
+                    and dic2["lastname"].lower() in author["firstname"].lower().split(" ") \
+                    or (dic2["firstname"].lower() in author["firstname"].lower().split(" ")
+                    and dic2["lastname"].lower() in author["lastname"].lower().split(" ")):
+                    # if dic2["firstname"].lower() == author["lastname"].lower()
+                    # and dic2["lastname"].lower()==author["firstname"].lower()
+                    # or (dic2["firstname"].lower()==author["firstname"].lower()
+                    # and dic2["lastname"].lower()==author["lastname"].lower()):
                     authors = author
-                    # print author
-                    authors["affiliation"] = authors["affiliation"][0] if authors["affiliation"] != [] else ""
-                    break
+                    authors["affiliation"] = authors["affiliation"][0]if authors["affiliation"] != [] else ""
                 else:
                     authors = {}
-        elif isinstance(dic['abstracts-retrieval-response']['authors']['author'], dict):
-            item = dic['abstracts-retrieval-response']['authors']['author']
-            author = getAuthorInfofromXML(item)
-            if dic2["firstname"].lower() in author["lastname"].lower().split(" ") \
-                and dic2["lastname"].lower() in author["firstname"].lower().split(" ") \
-                or (dic2["firstname"].lower() in author["firstname"].lower().split(" ")
-                    and dic2["lastname"].lower() in author["lastname"].lower().split(" ")):
-                # if dic2["firstname"].lower() == author["lastname"].lower()
-                # and dic2["lastname"].lower()==author["firstname"].lower()
-                # or (dic2["firstname"].lower()==author["firstname"].lower()
-                # and dic2["lastname"].lower()==author["lastname"].lower()):
-                authors = author
-                authors["affiliation"]=authors["affiliation"][0]if authors["affiliation"] != [] else ""
-            else:
-                authors = {}
-            # authorList.append(author)
+                # authorList.append(author)
     if not authors:
         return {}, {}
     # process affilInfo
@@ -214,8 +215,8 @@ def getInfofromAbstractAPI(dic, dic2):
                 # print item
                 affil = getAffilInfofromXML(item)
                 # print affil
-                if authors["affiliation"]==affil["id"][0]:
-                    affils=affil
+                if authors["affiliation"] == affil["id"][0]:
+                    affils = affil
         elif isinstance(dic['abstracts-retrieval-response']['affiliation'], dict):
             item = dic['abstracts-retrieval-response']['affiliation']
             affil = getAffilInfofromXML(item)
@@ -227,25 +228,27 @@ def getInfofromAbstractAPI(dic, dic2):
 
 def getAuthorInfofromXML(item):
     """
-
-    :param item:
-    :return:
+    从XML文件中获取作者信息
+    :param item: 来自getInfofromAbstractAPI(dic, dic2)的处理结果
+    :return: 每个作者信息字典
     """
     author = {}
     author['id'] = item['@auid']
-    author['url'] = item['author-url'].replace("'","''")
+    author['url'] = item['author-url'].replace("'", "''")
     author['rank'] = item['@seq']
 
-    author['simname'] = item['ce:indexed-name'] if 'ce:indexed-name' in item else item['preferred-name']['ce:indexed-name']  # Bai Y.
+    author['simname'] = item['ce:indexed-name']\
+        if 'ce:indexed-name' in item else item['preferred-name']['ce:indexed-name']  # Bai Y.
     author['simname'] = author['simname'].replace("'", "''") if author['simname'] is not None else ""
 
-    author['firstname'] = item['ce:surname'] if 'ce:surname' in item else item['preferred-name']['ce:surname'] # Bai
+    author['firstname'] = item['ce:surname'] if 'ce:surname' in item else item['preferred-name']['ce:surname']  # Bai
     author['firstname'] = author['firstname'].replace("'", "''") if author['firstname'] is not None else ""
 
-    author['lastname'] = item['ce:given-name'] if 'ce:given-name' in item else item['preferred-name']['ce:given-name'] # Yang
+    author['lastname'] = item['ce:given-name']\
+        if 'ce:given-name' in item else item['preferred-name']['ce:given-name']  # Yang
     author['lastname'] = author['lastname'].replace("'", "''") if author['lastname'] is not None else ""
 
-    author['simlastname'] = item['ce:initials'] if 'initials' in item else item['preferred-name']['ce:initials'] # Y.
+    author['simlastname'] = item['ce:initials'] if 'initials' in item else item['preferred-name']['ce:initials']  # Y.
     author['simlastname'] = author['simlastname'].replace("'", "''") if author['simlastname'] is not None else ""
 
     author['fullname'] = author['firstname'] + " " + author['lastname']  # Bai Yang
@@ -262,8 +265,8 @@ def getAuthorInfofromXML(item):
 
 def getAffilInfofromXML(item):
     """
-    :param item:
-    :return:
+    :param item:来自getInfofromAbstractAPI(dic, dic2)的处理结果
+    :return: 从XML文件中获取机构信息，机构字典
     """
     affil = {}
     affil['id'] = item['@id']
@@ -310,8 +313,8 @@ def updateSql(author, afil, pid):
 
 def findArticle(dict):
     """
-    :param dict:
-    :return:
+    :param dict:文章信息字典
+    :return: 加入作者列表与机构列表
     """
     authorList = []
     dictsupply = {}
@@ -323,8 +326,8 @@ def findArticle(dict):
     dictsupply["title"] = dict["title"]
     dictsupply["keywords"] = dict["keyPhrases"]
     dictsupply["abstract"] = dict["paperAbstract"]
-    dictsupply["journalName"] =dict["venue"]
-    if "year" in dict and not dict["year"]=="":
+    dictsupply["journalName"] = dict["venue"]
+    if "year" in dict and not dict["year"] == "":
         dictsupply["date"] = dict["year"] + '-01-01'
     else:
         dictsupply["date"] = ""
@@ -339,6 +342,10 @@ def findArticle(dict):
 
 
 def authoraffil(authorlist):
+    """
+    :param authorlist: 作者ID列表
+    :return:  作者对应机构ID列表
+    """
     server = dbIO()
     affillist = []
     for aid in authorlist:
@@ -356,7 +363,7 @@ def getAuthorlist(pid):
     """
     server = dbIO()
     authorlist = []
-    sql = "select aid from authorlist where articlelist='%s'" % (pid)
+    sql = "select aid from authorlist where articlelist='%s'" % pid
     datarows = server.load(sql)
     for row in datarows:
         authorlist.append(row[0])
@@ -364,6 +371,10 @@ def getAuthorlist(pid):
 
 
 def addArticle(dict):
+    """
+    :param dict: 文章信息字典（包含作者ID列表与机构ID列表）
+    :return: 文章数据库更新，从semantic补充，故不含scopus ID
+    """
     authors = ""
     authorlist = dict["authorlist"]
     for author in authorlist:

@@ -5,16 +5,17 @@ from databaseIO import dbIO
 
 def saveTaskList(taskList, key):
     """
-    :param taskList:
-    :param key:
-    :return:
+    :param taskList: [任务数量，Scopus高级子命令]，getTaskQueryList计算获得
+    :param key: 关键词（例如人工智能）
+    :return: 保存到数据库的任务列表的数目
     """
     dbIOserver = dbIO()
     insertNum = 0
     for task in taskList:
         sql = "select * from tasklist where query = '" + task[1] + "'"
         if dbIOserver.count(sql) == 0:
-            sql = "INSERT INTO tasklist (keyword,query,totalNum,taskType) VALUES ('" + key + "','" + task[1] + "','" + str(task[0]) + "','test')"
+            sql = "INSERT INTO tasklist (keyword,query,totalNum,taskType) VALUES " \
+                  "('" + key + "','" + task[1] + "','" + str(task[0]) + "','test')"
             if dbIOserver.save(sql) > 0:
                 insertNum += 1
     return insertNum
@@ -22,8 +23,8 @@ def saveTaskList(taskList, key):
 
 def loadTaskList(key):
     """
-    :param key:
-    :return:
+    :param key: 关键词
+    :return: 查询未被处理的任务对应列表
     """
     dbIOserver = dbIO()
     sql = "select id, totalNum, query from tasklist where keyword = '" + key + "' and flag != 1"
@@ -34,8 +35,9 @@ def loadTaskList(key):
 
 def getTasks(key):
     """
-    :param key:
-    :return:
+    入口函数
+    :param key:关键词
+    :return: 没有关键词对应的任务，则获取依关键词查找的全部子命令，并存成任务列表到数据库，有对应任务则查看，返回任务列表
     """
     dbIOserver = dbIO()
     sql = "SELECT * FROM tasklist where keyword = '" + key + "'"
