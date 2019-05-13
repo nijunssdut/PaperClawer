@@ -1,9 +1,10 @@
 # 论文学者数据信息爬取工具
 （回顾整理）
+--
 
-使用技术：urllib、pymysql、Levenshtein编辑距离
+## 使用技术：urllib、pymysql、Levenshtein编辑距离
 
-各函数功能介绍
+## 各函数功能介绍
 addAlterData: 脚本、用于合并两个数据库的信息
 
 checkKeys: 检查爬虫爬取Scopus API 是否因为key不足而出现异常
